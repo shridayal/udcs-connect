@@ -1,27 +1,34 @@
+import { useEffect, useState } from 'react'
 import SectionTitle from '../components/SectionTitle'
+import { getFacultyList } from '../api/facultyApi'
 
 function Faculty() {
-  const facultyMembers = [
-    {
-      name: 'Dr. A. Sharma',
-      designation: 'Professor',
-      specialization: 'Artificial Intelligence',
-    },
-    {
-      name: 'Dr. R. Mehta',
-      designation: 'Associate Professor',
-      specialization: 'Data Science',
-    },
-    {
-      name: 'Ms. S. Patil',
-      designation: 'Assistant Professor',
-      specialization: 'Machine Learning',
-    },
-  ]
+  const [facultyMembers, setFacultyMembers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const fetchFaculty = async () => {
+      try {
+        const data = await getFacultyList()
+        setFacultyMembers(data)
+      } catch (err) {
+        setError('Failed to load faculty data')
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchFaculty()
+  }, [])
 
   return (
     <section className="max-w-6xl mx-auto px-6 py-16">
       <SectionTitle title="Faculty Directory" subtitle="Meet our distinguished faculty members." />
+
+      {loading && <p className="text-gray-600">Loading faculty...</p>}
+      {error && <p className="text-red-600">{error}</p>}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {facultyMembers.map((faculty, index) => (

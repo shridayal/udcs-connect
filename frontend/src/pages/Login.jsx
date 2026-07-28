@@ -1,4 +1,45 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { loginUser } from '../api/authApi'
+import { saveTokens } from '../utils/auth'
+
 function Login() {
+  const navigate = useNavigate()
+
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  })
+
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    try {
+      const data = await loginUser(formData)
+
+      saveTokens(data.access, data.refresh)
+
+      navigate('/student-dashboard')
+    } catch (err) {
+      setError('Invalid login credentials')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <section className="min-h-[80vh] flex items-center justify-center px-6 py-16">
       <div className="w-full max-w-md bg-white rounded-xl shadow p-8">
@@ -6,11 +47,20 @@ function Login() {
           Login
         </h2>
 
-        <form className="space-y-4">
+        {error && (
+          <div className="mb-4 bg-red-100 text-red-700 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block mb-1 text-gray-700">Email</label>
             <input
               type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               className="w-full border rounded-lg px-4 py-3"
               placeholder="Enter your email"
             />
@@ -20,6 +70,9 @@ function Login() {
             <label className="block mb-1 text-gray-700">Password</label>
             <input
               type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
               className="w-full border rounded-lg px-4 py-3"
               placeholder="Enter your password"
             />
@@ -27,9 +80,10 @@ function Login() {
 
           <button
             type="submit"
-            className="w-full bg-blue-900 text-white py-3 rounded-lg hover:bg-blue-800"
+            disabled={loading}
+            className="w-full bg-blue-900 text-white py-3 rounded-lg hover:bg-blue-800 disabled:bg-gray-400"
           >
-            Sign In
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
       </div>
